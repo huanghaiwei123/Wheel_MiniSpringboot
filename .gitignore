@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+git rm --cached body.json cp.txt server_err.txt server_out.txt srv_err.txt srv_out.txt
+git commit -m "chore: 移除测试临时文件"
