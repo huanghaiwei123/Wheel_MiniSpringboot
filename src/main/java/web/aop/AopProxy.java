@@ -19,6 +19,7 @@ public class AopProxy {
         this.aspects = aspects;
     }
 
+
 //    核心方法：给目标对象生成代理
     public Object createProxy(Object target) {
         Enhancer enhancer = new Enhancer();  //Enhancer是cglib的“运行时造子类工厂”

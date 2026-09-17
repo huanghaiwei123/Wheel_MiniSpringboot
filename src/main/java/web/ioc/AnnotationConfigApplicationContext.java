@@ -10,10 +10,7 @@ import web.ioc.annotation.Type.RestController;
 import web.ioc.annotation.Type.Service;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AnnotationConfigApplicationContext{
     private final Map<String,Object> beans = new HashMap<>();   //作为容器存储实例对象
@@ -81,7 +78,7 @@ public class AnnotationConfigApplicationContext{
 
     private void injectDependence() {
         for(Object bean : beans.values()){
-            for(Field field:bean.getClass().getDeclaredFields()){
+            for(Field field:getAllFields(bean.getClass())){
                 if(field.isAnnotationPresent(Autowired.class)){
                     Object dependency=getFieldDependence(field.getType());
                     if(dependency==null){
@@ -97,6 +94,17 @@ public class AnnotationConfigApplicationContext{
                 }
             }
         }
+    }
+
+    //    为了适应cglib动态代理,子类层层往上找
+    private List<Field> getAllFields(Class<?> aClass) {
+        List<Field> list = new ArrayList<>();
+        while(aClass!=null && aClass.isAssignableFrom(Object.class)){
+            Field[] fields = aClass.getDeclaredFields();
+            list.addAll(Arrays.stream(fields).toList());
+            aClass = aClass.getSuperclass();
+        }
+        return list;
     }
 
     /**
