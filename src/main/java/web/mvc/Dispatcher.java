@@ -1,16 +1,9 @@
 package web.mvc;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
 import web.mvc.annotation.RequestMethod;
-import web.mvc.annotation.parameter.PathVariable;
-import web.mvc.annotation.parameter.RequestBody;
-import web.mvc.annotation.parameter.RequestParam;
+import web.mvc.exception.NotFoundException;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +12,6 @@ import java.util.Map;
  */
 public class Dispatcher {
     private HandleMapping handleMapping;
-    private final ObjectMapper objectMapper=new ObjectMapper();
     public Dispatcher(HandleMapping handleMapping) {
         this.handleMapping = handleMapping;
     }
@@ -36,30 +28,8 @@ public class Dispatcher {
             throw new NotFoundException("未找到路由: " + uri);
         }
 
-        //3. 遍历方法参数,按注解解析值,组装参数数组
-        Method method = result.getExecution().getMethod();
-        Parameter[] parameters = method.getParameters();
-        Object[] args = new Object[parameters.length];
-        for (int i = 0; i < parameters.length; i++) {
-            Parameter p = parameters[i];
-            if (p.isAnnotationPresent(RequestParam.class)) {
-                String name = p.getAnnotation(RequestParam.class).value();
-                args[i] = TypeConverter.convert(p.getType(), queryParams.get(name));
-            } else if (p.isAnnotationPresent(PathVariable.class)) {
-                String name = p.getAnnotation(PathVariable.class).value();
-                args[i] = TypeConverter.convert(p.getType(), result.getPathParams().get(name));
-            }else if(p.isAnnotationPresent(RequestBody.class)) {
-                try {
-                    //req.content()返回的是bytebuf这种二进制数据，要转为字符串必须指定编码类型
-                    args[i] = objectMapper.readValue(req.content().toString(StandardCharsets.UTF_8), p.getType());
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            else {
-                args[i] = null;   //没有注解的参数暂不支持,填 null
-            }
-        }
+        //调用参数解析器进行参数解析
+        Object[] args = new ArgumentResolver(req, result, queryParams,requestMethod).resolver();
 
         //4. 反射执行
         return result.getExecution().execute(args);

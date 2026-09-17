@@ -9,4 +9,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequestParam {
     String value();   // 参数名
+    boolean required() default true;
 }

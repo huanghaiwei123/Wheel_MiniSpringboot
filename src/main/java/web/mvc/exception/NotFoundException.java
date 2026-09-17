@@ -1,4 +1,4 @@
-package web.mvc;
+package web.mvc.exception;
 
 /**
  * 路由未找到异常,用于区分 404 和其他 500 错误

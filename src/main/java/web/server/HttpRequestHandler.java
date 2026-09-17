@@ -5,9 +5,10 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
-import web.mvc.NotFoundException;
+import web.mvc.exception.NotFoundException;
 import web.mvc.Dispatcher;
 import web.mvc.annotation.RequestMethod;
+import web.mvc.exception.BadRequestException;
 
 import static io.netty.handler.codec.http.HttpUtil.getContentLength;
 import static io.netty.handler.codec.http.HttpUtil.is100ContinueExpected;
@@ -54,7 +55,11 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
             response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND,
                     Unpooled.copiedBuffer(e.getMessage(), CharsetUtil.UTF_8));
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
-        } catch (Exception e) {
+        }catch(BadRequestException e) {
+            //请求异常->返回400
+            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST, Unpooled.copiedBuffer(e.getMessage(), CharsetUtil.UTF_8));
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+        }catch (Exception e) {
             //其他异常 → 500 内部错误
             e.printStackTrace();
             response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR,
