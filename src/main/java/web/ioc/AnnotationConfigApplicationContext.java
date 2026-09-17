@@ -99,7 +99,7 @@ public class AnnotationConfigApplicationContext{
     //    为了适应cglib动态代理,子类层层往上找
     private List<Field> getAllFields(Class<?> aClass) {
         List<Field> list = new ArrayList<>();
-        while(aClass!=null && aClass.isAssignableFrom(Object.class)){
+        while(aClass!=null && Object.class.isAssignableFrom(aClass)){
             Field[] fields = aClass.getDeclaredFields();
             list.addAll(Arrays.stream(fields).toList());
             aClass = aClass.getSuperclass();
